@@ -4,6 +4,15 @@ export default function Dashboard({ stats, loading, error, onRefresh }) {
   const card = { background: "white", borderRadius: "14px", padding: "16px", boxShadow: "0 6px 18px rgba(10,37,64,0.08)", border: "1px solid #E2E8F0", color: "#0F172A" };
   const valueStyle = { fontSize: "22px", fontWeight: 700, color: "#1D4ED8" };
   const barWrap = { display: "flex", alignItems: "flex-end", gap: 8, height: 120, marginTop: 12 };
+
+  // table styles (same as Payments)
+  const baseTable = { width: "100%", color: "#0F172A", borderCollapse: "separate", borderSpacing: "0" };
+  const thtd = { padding: "10px 12px", borderRight: "1px solid #E2E8F0" };
+  const headerCell = { ...thtd, background: "#F1F5F9", fontWeight: 700, fontSize: 13, color: "#0A2540" };
+  const rowCell = { ...thtd, background: "white", fontSize: 13 };
+  const rowAltCell = { ...thtd, background: "#F9FAFB", fontSize: 13 };
+  const rowEnd = { borderBottom: "1px solid #E2E8F0" };
+
   const maxVal = () => Math.max(...(stats.trend || []).map(t => t.received), 1);
   const bar = (val) => ({ width: 24, height: Math.max(4, Math.min(120, (val / maxVal()) * 120)), background: "linear-gradient(180deg, #1D4ED8, #F97316)", borderRadius: 6 });
 
@@ -31,19 +40,48 @@ export default function Dashboard({ stats, loading, error, onRefresh }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginTop: "16px" }}>
         <div style={card}>
           <div style={{ fontWeight: 800, color: "#0A2540" }}>Top houses (this month)</div>
-          <table style={{ width: "100%", marginTop: 8, color: "#0F172A" }}>
-            <thead><tr><th>House</th><th>Received</th></tr></thead>
-            <tbody>{(stats.top_houses || []).map((h, i) => (<tr key={i}><td>{h.house_number}</td><td>KES {h.received}</td></tr>))}</tbody>
+          <table style={baseTable}>
+            <thead>
+              <tr style={rowEnd}>
+                <th style={headerCell}>House</th>
+                <th style={headerCell}>Received</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(stats.top_houses || []).map((h, i) => {
+                const cellStyle = i % 2 === 0 ? rowCell : rowAltCell;
+                return (
+                  <tr key={i} style={rowEnd}>
+                    <td style={cellStyle}>{h.house_number}</td>
+                    <td style={cellStyle}>KES {h.received}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
           </table>
         </div>
+
         <div style={card}>
-          <div style={{ fontWeight: 800, color: "#0A2540" }}>Recent payments</div>
-          <table style={{ width: "100%", marginTop: 8, color: "#0F172A" }}>
-            <thead><tr><th>House</th><th>Tenant</th><th>Amount</th><th>Method</th><th>Date/time</th><th>For</th></tr></thead>
+          <div style={{ fontWeight: 800, color: "#0A2540" }}>Outstanding houses (this month)</div>
+          <table style={baseTable}>
+            <thead>
+              <tr style={rowEnd}>
+                <th style={headerCell}>House</th>
+                <th style={headerCell}>Outstanding</th>
+              </tr>
+            </thead>
             <tbody>
-              {(stats.recent_payments || []).map((p, i) => (
-                <tr key={i}><td>{p.house_number}</td><td>{p.tenant_name}</td><td>KES {p.amount}</td><td>{p.method}</td><td>{p.paid_at}</td><td>{p.for_month}</td></tr>
-              ))}
+              {/* Example: outstanding = expected - received */}
+              {(stats.top_houses || []).map((h, i) => {
+                const cellStyle = i % 2 === 0 ? rowCell : rowAltCell;
+                const outstanding = (stats.expected / stats.units) - h.received; // approximate per house
+                return (
+                  <tr key={i} style={rowEnd}>
+                    <td style={cellStyle}>{h.house_number}</td>
+                    <td style={cellStyle}>KES {outstanding > 0 ? outstanding : 0}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

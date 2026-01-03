@@ -4,7 +4,6 @@ import Dashboard from "./components/Dashboard.jsx";
 import Houses from "./components/Houses.jsx";
 import Tenants from "./components/Tenants.jsx";
 import Payments from "./components/Payments.jsx";
-import Transactions from "./components/Transactions.jsx";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -53,7 +52,6 @@ export default function App() {
         <NavItem name="Houses" />
         <NavItem name="Tenants" />
         <NavItem name="Payments" />
-        <NavItem name="Transactions" />
         <div style={layout.statusBar}>API: {API}</div>
       </aside>
       <main style={layout.main}>
@@ -61,7 +59,6 @@ export default function App() {
         {view === "Houses" && <Houses api={API} onChanged={fetchStats} />}
         {view === "Tenants" && <Tenants api={API} onChanged={fetchStats} />}
         {view === "Payments" && <Payments api={API} onRecorded={fetchStats} />}
-        {view === "Transactions" && <Transactions api={API} />}
       </main>
     </div>
   );
