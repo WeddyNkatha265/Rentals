@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import calendar
 import os
 
@@ -22,3 +22,9 @@ def due_date_for_month(dt: date):
 
 def settings_int(key, default):
     return int(os.getenv(key, str(default)))
+
+def date_range(month_start: date, month_end: date):
+    d = month_start
+    while d <= month_end:
+        yield d
+        d += timedelta(days=1)

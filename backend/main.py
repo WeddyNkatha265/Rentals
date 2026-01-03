@@ -8,8 +8,9 @@ from services import (
     send_receipt_for_payment, house_total_received
 )
 from pydantic import BaseModel
-from datetime import date
-from utils import today_date
+from datetime import date, datetime
+from utils import today_date, month_bounds, date_range
+import calendar
 
 app = FastAPI(title="Murithi's Homes API")
 
@@ -49,7 +50,7 @@ class PaymentCreate(BaseModel):
     tx_ref: str | None = None
     msisdn: str | None = None
 
-# Stats for dashboard (finance only)
+# Finance dashboard
 @app.get("/stats")
 def stats(db: Session = Depends(get_db)):
     houses = db.query(House).filter(House.is_active == True).all()
@@ -61,26 +62,34 @@ def stats(db: Session = Depends(get_db)):
     received = sum(p.amount for p in payments if p.status == "confirmed" and p.paid_at.date() >= start)
     outstanding = max(expected - received, 0)
 
-    # Top houses by revenue (current month)
-    house_sums = {}
+    # Top houses (current month)
+    house_sums = []
     for h in houses:
-        house_sums[h.number] = sum(p.amount for p in db.query(Payment).filter(
-            Payment.house_id == h.id,
-            Payment.status == "confirmed",
-            Payment.paid_at >= start
-        ).all())
-    top = sorted(house_sums.items(), key=lambda kv: kv[1], reverse=True)[:3]
-    top_houses = [{"house_number": hn, "received": amt} for hn, amt in top]
+        house_month_received = sum(p.amount for p in db.query(Payment).filter(Payment.house_id == h.id, Payment.status == "confirmed").all() if p.paid_at.date() >= start)
+        house_sums.append({"house_number": h.number, "received": house_month_received})
+    top_houses = sorted(house_sums, key=lambda x: x["received"], reverse=True)[:3]
 
-    # Recent payments
+    # Recent payments (exact timestamps)
     recent = []
     for p in db.query(Payment).order_by(Payment.paid_at.desc()).limit(10).all():
         h = db.query(House).get(p.house_id)
         t = db.query(Tenant).get(p.tenant_id)
         recent.append({
             "house_number": h.number, "tenant_name": t.full_name,
-            "amount": p.amount, "method": p.method, "paid_at": p.paid_at.isoformat()
+            "amount": p.amount, "method": p.method,
+            "paid_at": p.paid_at.strftime("%Y-%m-%d %H:%M:%S")
         })
+
+    # Monthly trend (last 6 months)
+    trend = []
+    today = today_date()
+    for i in range(5, -1, -1):
+        year = (today.year if today.month - i > 0 else today.year - 1) if (today.month - i) <= 0 else today.year
+        month = ((today.month - i - 1) % 12) + 1
+        m_start = date(year, month, 1)
+        m_end = date(year, month, calendar.monthrange(year, month)[1])
+        m_received = sum(p.amount for p in db.query(Payment).all() if p.status == "confirmed" and m_start <= p.paid_at.date() <= m_end)
+        trend.append({"year": year, "month": month, "received": m_received})
 
     return {
         "units": units,
@@ -88,21 +97,14 @@ def stats(db: Session = Depends(get_db)):
         "received": received,
         "outstanding": outstanding,
         "top_houses": top_houses,
-        "recent_payments": recent
+        "recent_payments": recent,
+        "trend": trend
     }
 
-# Houses
-@app.post("/houses")
-def create_house(payload: HouseCreate, db: Session = Depends(get_db)):
-    exists = db.query(House).filter(House.number == payload.number).first()
-    if exists:
-        raise HTTPException(400, "House number exists")
-    h = House(number=payload.number, type=payload.type, monthly_rent=payload.monthly_rent, is_active=True)
-    db.add(h); db.commit(); db.refresh(h)
-    return {"id": h.id}
-
+# Houses with today's summary
 @app.get("/houses")
 def list_houses(db: Session = Depends(get_db)):
+    today = today_date()
     houses = db.query(House).order_by(House.number.asc()).all()
     result = []
     for h in houses:
@@ -112,12 +114,36 @@ def list_houses(db: Session = Depends(get_db)):
             t = db.query(Tenant).get(rel.tenant_id)
             tenants.append({"id": t.id, "full_name": t.full_name, "phone": t.phone, "email": t.email})
         total_received = house_total_received(db, h.id)
+
+        # Today's summary
+        today_payments = db.query(Payment).filter(Payment.house_id == h.id).all()
+        today_payments = [p for p in today_payments if p.paid_at.date() == today and p.status == "confirmed"]
+        today_received = sum(p.amount for p in today_payments)
+        paid_names = []
+        for p in today_payments:
+            tn = db.query(Tenant).get(p.tenant_id)
+            paid_names.append(tn.full_name)
+        tenant_names = [x["full_name"] for x in tenants]
+        unpaid_names = [n for n in tenant_names if n not in paid_names]
+
         result.append({
             "id": h.id, "number": h.number, "type": h.type,
             "monthly_rent": h.monthly_rent, "tenants": tenants,
-            "total_received": total_received
+            "total_received": total_received,
+            "today_received": today_received,
+            "today_paid": paid_names,
+            "today_unpaid": unpaid_names
         })
     return result
+
+@app.post("/houses")
+def create_house(payload: HouseCreate, db: Session = Depends(get_db)):
+    exists = db.query(House).filter(House.number == payload.number).first()
+    if exists:
+        raise HTTPException(400, "House number exists")
+    h = House(number=payload.number, type=payload.type, monthly_rent=payload.monthly_rent, is_active=True)
+    db.add(h); db.commit(); db.refresh(h)
+    return {"id": h.id}
 
 @app.post("/houses/{house_id}/tenants")
 def add_tenant_to_house(house_id: int, payload: HouseTenantAdd, db: Session = Depends(get_db)):
@@ -155,7 +181,6 @@ def create_tenant(payload: TenantCreate, db: Session = Depends(get_db)):
 
 @app.get("/tenants")
 def list_tenants(db: Session = Depends(get_db)):
-    # show active and former tenants with last known house assignment and end_date
     rels = db.query(HouseTenant).all()
     merged = []
     for rel in rels:
@@ -166,12 +191,11 @@ def list_tenants(db: Session = Depends(get_db)):
             "full_name": t.full_name,
             "phone": t.phone,
             "email": t.email,
-            "status": rel.status,             # 'active' or 'ended'
+            "status": rel.status,
             "house_number": h.number,
             "start_date": rel.start_date.isoformat(),
             "end_date": rel.end_date.isoformat() if rel.end_date else None
         })
-    # also include tenants never assigned to any house
     assigned_ids = {m["id"] for m in merged}
     unassigned = db.query(Tenant).filter(Tenant.id.notin_(assigned_ids)).all()
     for t in unassigned:
@@ -193,7 +217,6 @@ def soft_delete_tenant(tenant_id: int, db: Session = Depends(get_db)):
     if not t:
         raise HTTPException(404, "Tenant not found")
     t.is_active = False
-    # end any active house assignments
     rels = db.query(HouseTenant).filter(HouseTenant.tenant_id == tenant_id, HouseTenant.status == "active").all()
     for rel in rels:
         rel.status = "ended"
@@ -215,7 +238,7 @@ def list_payments(db: Session = Depends(get_db)):
             "tenant_name": t.full_name,
             "method": p.method,
             "amount": p.amount,
-            "paid_at": p.paid_at.isoformat(),
+            "paid_at": p.paid_at.strftime("%Y-%m-%d %H:%M:%S"),
             "tx_ref": p.tx_ref
         })
     return result
@@ -242,3 +265,76 @@ def record_payment(payload: PaymentCreate, db: Session = Depends(get_db)):
     inv = apply_payment_status(db, inv.id)
     send_receipt_for_payment(db, pay.id)
     return {"payment_id": pay.id, "invoice_status": inv.status}
+
+# Reports: daily, monthly, yearly
+@app.get("/reports/daily/{year}/{month}/{day}")
+def daily_report(year: int, month: int, day: int, db: Session = Depends(get_db)):
+    day_date = date(year, month, day)
+    houses = db.query(House).all()
+    expected = sum(h.monthly_rent for h in houses)  # per month, but we show expected daily context
+    payments = [p for p in db.query(Payment).all() if p.paid_at.date() == day_date and p.status == "confirmed"]
+    total_received = sum(p.amount for p in payments)
+    by_house = {}
+    for h in houses:
+        by_house[h.number] = {"received": 0, "paid": [], "unpaid": []}
+        rels = db.query(HouseTenant).filter(HouseTenant.house_id == h.id, HouseTenant.status == "active").all()
+        names = []
+        for rel in rels:
+            t = db.query(Tenant).get(rel.tenant_id)
+            names.append(t.full_name)
+        paid_today = []
+        for p in payments:
+            if p.house_id == h.id:
+                tn = db.query(Tenant).get(p.tenant_id)
+                paid_today.append(tn.full_name)
+                by_house[h.number]["received"] += p.amount
+        by_house[h.number]["paid"] = paid_today
+        by_house[h.number]["unpaid"] = [n for n in names if n not in paid_today]
+    return {
+        "date": day_date.isoformat(),
+        "expected_monthly": expected,
+        "received_today": total_received,
+        "houses": by_house
+    }
+
+@app.get("/reports/monthly/{year}/{month}")
+def monthly_report(year: int, month: int, db: Session = Depends(get_db)):
+    m_start = date(year, month, 1)
+    m_end = date(year, month, calendar.monthrange(year, month)[1])
+    houses = db.query(House).all()
+    expected = sum(h.monthly_rent for h in houses)
+    payments = [p for p in db.query(Payment).all() if p.status == "confirmed" and m_start <= p.paid_at.date() <= m_end]
+    total_received = sum(p.amount for p in payments)
+    outstanding = max(expected - total_received, 0)
+    items = []
+    for p in payments:
+        h = db.query(House).get(p.house_id)
+        t = db.query(Tenant).get(p.tenant_id)
+        items.append({
+            "house": h.number,
+            "tenant": t.full_name,
+            "amount": p.amount,
+            "method": p.method,
+            "paid_at": p.paid_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "tx_ref": p.tx_ref
+        })
+    return {
+        "year": year, "month": month,
+        "expected": expected,
+        "received": total_received,
+        "outstanding": outstanding,
+        "payments": items
+    }
+
+@app.get("/reports/yearly/{year}")
+def yearly_report(year: int, db: Session = Depends(get_db)):
+    houses = db.query(House).all()
+    monthly = []
+    total_year = 0
+    for month in range(1, 12 + 1):
+        m_start = date(year, month, 1)
+        m_end = date(year, month, calendar.monthrange(year, month)[1])
+        m_received = sum(p.amount for p in db.query(Payment).all() if p.status == "confirmed" and m_start <= p.paid_at.date() <= m_end)
+        total_year += m_received
+        monthly.append({"month": month, "received": m_received})
+    return {"year": year, "monthly": monthly, "total_received": total_year}

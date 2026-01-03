@@ -77,7 +77,8 @@ def send_receipt_for_payment(db: Session, payment_id: int):
     msg = (
         f"Murithi's Homes: Payment received.\n"
         f"House: {house.number}\nPayer: {tenant.full_name}\n"
-        f"Amount: KES {pay.amount}\nMethod: {pay.method.title()}\nRef: {pay.tx_ref or 'N/A'}"
+        f"Amount: KES {pay.amount}\nMethod: {pay.method.title()}\nRef: {pay.tx_ref or 'N/A'}\n"
+        f"Time: {pay.paid_at.strftime('%Y-%m-%d %H:%M:%S')}"
     )
     send_sms(db, tenant.id, msg, "receipt", f"payment:{payment_id}")
 

@@ -28,9 +28,9 @@ class HouseTenant(Base):
     id = Column(Integer, primary_key=True)
     house_id = Column(Integer, ForeignKey("houses.id"), nullable=False)
     tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
-    status = Column(String(20), nullable=False, default="active")  # 'active','ended'
+    status = Column(String(20), nullable=False, default="active")  # 'active','ended','unassigned'
     start_date = Column(Date, nullable=False)
-    end_date = Column(Date)  # set when status becomes 'ended'
+    end_date = Column(Date)
     house = relationship("House", back_populates="tenants_rel")
     tenant = relationship("Tenant", back_populates="houses_rel")
 

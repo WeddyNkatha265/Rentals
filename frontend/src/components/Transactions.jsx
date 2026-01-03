@@ -26,11 +26,11 @@ export default function Transactions({ api }) {
       <h2 style={{ fontWeight: 800, color: "#0A2540" }}>Transactions</h2>
       {loading && <div style={{ color: "#64748B" }}>Loading transactions...</div>}
       {error && <div style={{ color: "#C2410C" }}>Error: {error}</div>}
-      <div style={{ background: "white", borderRadius: "12px", padding: "16px", border: "1px solid #E2E8F0" }}>
-        <table style={{ width: "100%" }}>
+      <div style={{ background: "white", borderRadius: "12px", padding: "16px", border: "1px solid #E2E8F0", color: "#0F172A" }}>
+        <table style={{ width: "100%", color: "#0F172A" }}>
           <thead>
             <tr>
-              <th>House</th><th>Tenant</th><th>Method</th><th>Amount</th><th>Date</th><th>Ref</th>
+              <th>House</th><th>Tenant</th><th>Method</th><th>Amount</th><th>Date/time</th><th>Ref</th>
             </tr>
           </thead>
           <tbody>
@@ -40,7 +40,7 @@ export default function Transactions({ api }) {
                 <td>{t.tenant_name}</td>
                 <td>{t.method}</td>
                 <td>KES {t.amount}</td>
-                <td>{new Date(t.paid_at).toLocaleString()}</td>
+                <td>{t.paid_at}</td>
                 <td>{t.tx_ref || "-"}</td>
               </tr>
             ))}
@@ -50,5 +50,3 @@ export default function Transactions({ api }) {
     </div>
   );
 }
-
-

@@ -5,6 +5,7 @@ import Houses from "./components/Houses.jsx";
 import Tenants from "./components/Tenants.jsx";
 import Payments from "./components/Payments.jsx";
 import Transactions from "./components/Transactions.jsx";
+import Reports from "./components/Reports.jsx";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -23,12 +24,12 @@ const layout = {
   navItem: { padding: "12px 14px", borderRadius: "10px", cursor: "pointer" },
   navActive: { background: "rgba(255,255,255,0.12)", border: "1px solid #93C5FD" },
   main: { flex: 1, padding: "24px" },
-  statusBar: { color: "#64748B", fontSize: "12px", marginTop: "6px" }
+  statusBar: { color: "#93C5FD", fontSize: "12px", marginTop: "6px" }
 };
 
 export default function App() {
   const [view, setView] = useState("Dashboard");
-  const [stats, setStats] = useState({ units: 0, expected: 0, received: 0, outstanding: 0, top_houses: [], recent_payments: [] });
+  const [stats, setStats] = useState({ units: 0, expected: 0, received: 0, outstanding: 0, top_houses: [], recent_payments: [], trend: [] });
   const [loadingStats, setLoadingStats] = useState(false);
   const [errorStats, setErrorStats] = useState("");
 
@@ -50,10 +51,7 @@ export default function App() {
   }, []);
 
   const NavItem = ({ name }) => (
-    <div
-      onClick={() => setView(name)}
-      style={{ ...layout.navItem, ...(view === name ? layout.navActive : {}) }}
-    >
+    <div onClick={() => setView(name)} style={{ ...layout.navItem, ...(view === name ? layout.navActive : {}) }}>
       {name}
     </div>
   );
@@ -67,21 +65,16 @@ export default function App() {
         <NavItem name="Tenants" />
         <NavItem name="Payments" />
         <NavItem name="Transactions" />
+        <NavItem name="Reports" />
         <div style={layout.statusBar}>API: {API}</div>
       </aside>
       <main style={layout.main}>
-        {view === "Dashboard" && (
-          <Dashboard
-            stats={stats}
-            loading={loadingStats}
-            error={errorStats}
-            onRefresh={fetchStats}
-          />
-        )}
+        {view === "Dashboard" && <Dashboard stats={stats} loading={loadingStats} error={errorStats} onRefresh={fetchStats} />}
         {view === "Houses" && <Houses api={API} onChanged={fetchStats} />}
         {view === "Tenants" && <Tenants api={API} onChanged={fetchStats} />}
         {view === "Payments" && <Payments api={API} onRecorded={fetchStats} />}
         {view === "Transactions" && <Transactions api={API} />}
+        {view === "Reports" && <Reports api={API} />}
       </main>
     </div>
   );

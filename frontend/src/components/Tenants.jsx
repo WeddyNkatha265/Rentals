@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const inputStyle = { display: "block", width: "100%", padding: 8, border: "1px solid #E2E8F0", borderRadius: 8, marginBottom: 8 };
+const inputStyle = { display: "block", width: "100%", padding: 8, border: "1px solid #E2E8F0", borderRadius: 8, marginBottom: 8, color: "#0F172A", background: "white" };
 const btnStyle = { background: "linear-gradient(90deg, #1D4ED8, #F97316)", color: "white", padding: "8px 12px", borderRadius: 10, border: "none" };
-const card = { background: "white", borderRadius: "12px", padding: "16px", border: "1px solid #E2E8F0" };
+const card = { background: "white", borderRadius: "12px", padding: "16px", border: "1px solid #E2E8F0", color: "#0F172A" };
 
 export default function Tenants({ api, onChanged }) {
   const [tenants, setTenants] = useState([]);
@@ -69,7 +69,7 @@ export default function Tenants({ api, onChanged }) {
 
         <div style={card}>
           <div style={{ fontWeight: 700, marginBottom: 8 }}>Active tenants</div>
-          <table style={{ width: "100%" }}>
+          <table style={{ width: "100%", color: "#0F172A" }}>
             <thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>House</th><th>Start</th><th></th></tr></thead>
             <tbody>
               {active.map(t => (
@@ -86,7 +86,7 @@ export default function Tenants({ api, onChanged }) {
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"16px", marginTop:"16px" }}>
         <div style={card}>
           <div style={{ fontWeight: 700, marginBottom: 8 }}>Former tenants</div>
-          <table style={{ width: "100%" }}>
+          <table style={{ width: "100%", color: "#0F172A" }}>
             <thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>House</th><th>End</th></tr></thead>
             <tbody>
               {former.map(t => (
@@ -99,7 +99,7 @@ export default function Tenants({ api, onChanged }) {
         </div>
         <div style={card}>
           <div style={{ fontWeight: 700, marginBottom: 8 }}>Unassigned tenants</div>
-          <table style={{ width: "100%" }}>
+          <table style={{ width: "100%", color: "#0F172A" }}>
             <thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Email</th></tr></thead>
             <tbody>
               {unassigned.map(t => (

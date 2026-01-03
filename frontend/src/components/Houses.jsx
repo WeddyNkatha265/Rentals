@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const inputStyle = { padding: 8, border: "1px solid #E2E8F0", borderRadius: 8 };
-const card = { background: "white", borderRadius: "12px", padding: "16px", border: "1px solid #E2E8F0" };
+const inputStyle = { padding: 8, border: "1px solid #E2E8F0", borderRadius: 8, color: "#0F172A", background: "white" };
+const card = { background: "white", borderRadius: "12px", padding: "16px", border: "1px solid #E2E8F0", color: "#0F172A" };
 
 export default function Houses({ api, onChanged }) {
   const [houses, setHouses] = useState([]);
@@ -16,10 +16,7 @@ export default function Houses({ api, onChanged }) {
     try {
       setLoading(true);
       setError("");
-      const [h, t] = await Promise.all([
-        axios.get(`${api}/houses`),
-        axios.get(`${api}/tenants`)
-      ]);
+      const [h, t] = await Promise.all([axios.get(`${api}/houses`), axios.get(`${api}/tenants`)]);
       setHouses(h.data);
       setTenants(t.data);
     } catch (e) {
@@ -55,8 +52,14 @@ export default function Houses({ api, onChanged }) {
             <div style={{ fontWeight: 700, color: "#1D4ED8" }}>
               House {h.number} • {h.type} • Rent KES {h.monthly_rent}
             </div>
-            <div style={{ marginTop: 8, color: "#334155" }}>
+            <div style={{ marginTop: 8 }}>
               <strong>Total received:</strong> KES {h.total_received || 0}
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <div style={{ fontSize: "12px", color: "#64748B" }}>Today:</div>
+              <div>Received: KES {h.today_received || 0}</div>
+              <div>Paid: {h.today_paid.join(", ") || "None"}</div>
+              <div>Unpaid: {h.today_unpaid.join(", ") || "None"}</div>
             </div>
             <div style={{ marginTop: 8 }}>
               <div style={{ fontSize: "12px", color: "#64748B" }}>Tenants:</div>

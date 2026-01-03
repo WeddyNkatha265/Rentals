@@ -1,16 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const inputStyle = { padding: 8, border: "1px solid #E2E8F0", borderRadius: 8 };
-const btnStyle = {
-  marginTop: 12,
-  background: "linear-gradient(90deg, #1D4ED8, #F97316)",
-  color: "white",
-  padding: "10px 14px",
-  borderRadius: 10,
-  border: "none",
-  boxShadow: "0 4px 12px rgba(10,37,64,0.2)"
-};
+const inputStyle = { padding: 8, border: "1px solid #E2E8F0", borderRadius: 8, color: "#0F172A", background: "white" };
+const btnStyle = { marginTop: 12, background: "linear-gradient(90deg, #1D4ED8, #F97316)", color: "white", padding: "10px 14px", borderRadius: 10, border: "none", boxShadow: "0 4px 12px rgba(10,37,64,0.2)" };
+const card = { background: "white", borderRadius: "12px", padding: "16px", border: "1px solid #E2E8F0", color: "#0F172A" };
 
 export default function Payments({ api, onRecorded }) {
   const [houses, setHouses] = useState([]);
@@ -51,7 +44,7 @@ export default function Payments({ api, onRecorded }) {
   return (
     <div>
       <h2 style={{ fontWeight: 800, color: "#0A2540" }}>Record payment</h2>
-      <div style={{ background: "white", borderRadius: "12px", padding: "16px", maxWidth: 720, border: "1px solid #E2E8F0" }}>
+      <div style={card}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <select value={form.house_id} onChange={e => setForm({ ...form, house_id: e.target.value, tenant_id: "" })} style={inputStyle}>
             <option value="">Select house</option>
