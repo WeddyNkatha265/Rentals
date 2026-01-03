@@ -10,7 +10,7 @@ const API = import.meta.env.VITE_API_URL;
 const layout = {
   wrapper: { display: "flex", minHeight: "100vh", background: "#F8FAFC" },
   sidebar: { width: "260px", background: "#0A2540", color: "white", padding: "24px", display: "flex", flexDirection: "column", gap: "8px" },
-  brand: { fontWeight: 800, fontSize: "20px", marginBottom: "16px", letterSpacing: "0.4px" },
+  brand: { fontWeight: 800, fontSize: "30px", marginBottom: "16px", letterSpacing: "0.4px" },
   navItem: { padding: "12px 14px", borderRadius: "10px", cursor: "pointer" },
   navActive: { background: "rgba(255,255,255,0.12)", border: "1px solid #93C5FD" },
   main: { flex: 1, padding: "24px" },

@@ -3,7 +3,7 @@ export default function Dashboard({ stats, loading, error, onRefresh }) {
   const grid = { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginTop: "16px" };
   const card = { background: "white", borderRadius: "14px", padding: "16px", boxShadow: "0 6px 18px rgba(10,37,64,0.08)", border: "1px solid #E2E8F0", color: "#0F172A" };
   const valueStyle = { fontSize: "22px", fontWeight: 700, color: "#1D4ED8" };
-  const barWrap = { display: "flex", alignItems: "flex-end", gap: 8, height: 120, marginTop: 12 };
+  const barWrap = { display: "flex", alignItems: "flex-end", gap: 12, height: 240, marginTop: 12 };
 
   // table styles (same as Payments)
   const baseTable = { width: "100%", color: "#0F172A", borderCollapse: "separate", borderSpacing: "0" };
@@ -14,7 +14,7 @@ export default function Dashboard({ stats, loading, error, onRefresh }) {
   const rowEnd = { borderBottom: "1px solid #E2E8F0" };
 
   const maxVal = () => Math.max(...(stats.trend || []).map(t => t.received), 1);
-  const bar = (val) => ({ width: 24, height: Math.max(4, Math.min(120, (val / maxVal()) * 120)), background: "linear-gradient(180deg, #1D4ED8, #F97316)", borderRadius: 6 });
+  const bar = (val) => ({ width: 50, height: Math.max(4, Math.min(120, (val / maxVal()) * 120)), background: "linear-gradient(180deg, #1D4ED8, #F97316)", borderRadius: 6 });
 
   const Item = ({ label, value }) => (
     <div style={card}>
@@ -93,7 +93,7 @@ export default function Dashboard({ stats, loading, error, onRefresh }) {
           {(stats.trend || []).map((t, i) => (
             <div key={i} style={{ textAlign: "center", color: "#0F172A" }}>
               <div style={bar(t.received)}></div>
-              <div style={{ fontSize: 10, marginTop: 4 }}>{t.month}/{String(t.year).slice(2)}</div>
+              <div style={{ fontSize: 20, marginTop: 4 }}>{t.month}/{String(t.year).slice(2)}</div>
             </div>
           ))}
         </div>
