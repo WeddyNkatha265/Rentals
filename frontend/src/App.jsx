@@ -5,21 +5,12 @@ import Houses from "./components/Houses.jsx";
 import Tenants from "./components/Tenants.jsx";
 import Payments from "./components/Payments.jsx";
 import Transactions from "./components/Transactions.jsx";
-import Reports from "./components/Reports.jsx";
 
 const API = import.meta.env.VITE_API_URL;
 
 const layout = {
   wrapper: { display: "flex", minHeight: "100vh", background: "#F8FAFC" },
-  sidebar: {
-    width: "260px",
-    background: "#0A2540",
-    color: "white",
-    padding: "24px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px"
-  },
+  sidebar: { width: "260px", background: "#0A2540", color: "white", padding: "24px", display: "flex", flexDirection: "column", gap: "8px" },
   brand: { fontWeight: 800, fontSize: "20px", marginBottom: "16px", letterSpacing: "0.4px" },
   navItem: { padding: "12px 14px", borderRadius: "10px", cursor: "pointer" },
   navActive: { background: "rgba(255,255,255,0.12)", border: "1px solid #93C5FD" },
@@ -46,9 +37,7 @@ export default function App() {
     }
   };
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
+  useEffect(() => { fetchStats(); }, []);
 
   const NavItem = ({ name }) => (
     <div onClick={() => setView(name)} style={{ ...layout.navItem, ...(view === name ? layout.navActive : {}) }}>
@@ -65,7 +54,6 @@ export default function App() {
         <NavItem name="Tenants" />
         <NavItem name="Payments" />
         <NavItem name="Transactions" />
-        <NavItem name="Reports" />
         <div style={layout.statusBar}>API: {API}</div>
       </aside>
       <main style={layout.main}>
@@ -74,7 +62,6 @@ export default function App() {
         {view === "Tenants" && <Tenants api={API} onChanged={fetchStats} />}
         {view === "Payments" && <Payments api={API} onRecorded={fetchStats} />}
         {view === "Transactions" && <Transactions api={API} />}
-        {view === "Reports" && <Reports api={API} />}
       </main>
     </div>
   );

@@ -18,6 +18,7 @@ class Tenant(Base):
     id = Column(Integer, primary_key=True)
     full_name = Column(String(120), nullable=False)
     phone = Column(String(20), nullable=False)  # +2547xxxxxxx
+    gov_id = Column(String(40), nullable=False)  # government ID
     email = Column(String(120))
     is_active = Column(Boolean, default=True, nullable=False)
     houses_rel = relationship("HouseTenant", back_populates="tenant", cascade="all, delete-orphan")
@@ -38,8 +39,8 @@ class Invoice(Base):
     __tablename__ = "invoices"
     id = Column(Integer, primary_key=True)
     house_id = Column(Integer, ForeignKey("houses.id"), nullable=False)
-    period_start = Column(Date, nullable=False)
-    period_end = Column(Date, nullable=False)
+    period_start = Column(Date, nullable=False)  # first day of month
+    period_end = Column(Date, nullable=False)    # last day of month
     amount_due = Column(Integer, nullable=False)
     due_date = Column(Date, nullable=False)
     status = Column(String(20), nullable=False)  # 'pending','partially_paid','paid','overdue'
@@ -57,6 +58,8 @@ class Payment(Base):
     amount = Column(Integer, nullable=False)
     tx_ref = Column(String(80))
     mpesa_msisdn = Column(String(20))
+    target_year = Column(Integer, nullable=False)   # month/year being paid for (allocation start)
+    target_month = Column(Integer, nullable=False)
     paid_at = Column(TIMESTAMP, nullable=False)
     status = Column(String(20), nullable=False)  # 'confirmed','reversed'
     notes = Column(Text)
@@ -68,7 +71,7 @@ class Notification(Base):
     __tablename__ = "notifications"
     id = Column(Integer, primary_key=True)
     tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
-    type = Column(String(30), nullable=False)  # 'receipt','due','overdue'
+    type = Column(String(30), nullable=False)  # 'receipt','due','overdue','reminder'
     channel = Column(String(20), nullable=False)  # 'sms'
     message = Column(Text, nullable=False)
     status = Column(String(20), nullable=False)  # 'sent','failed'
