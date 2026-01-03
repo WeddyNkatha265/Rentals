@@ -7,7 +7,6 @@ def run():
     try:
         existing_numbers = {h.number for h in db.query(House).all()}
         to_add = []
-        # Houses 1-6: bedsitter KES 3500; 7-10: single KES 3000
         for n in range(1, 7):
             if n not in existing_numbers:
                 to_add.append(House(number=n, type="bedsitter", monthly_rent=3500, is_active=True))

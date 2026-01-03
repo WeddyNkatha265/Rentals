@@ -30,14 +30,14 @@ export default function Transactions({ api }) {
         <table style={{ width: "100%" }}>
           <thead>
             <tr>
-              <th>House</th><th>Payer</th><th>Method</th><th>Amount</th><th>Date</th><th>Ref</th>
+              <th>House</th><th>Tenant</th><th>Method</th><th>Amount</th><th>Date</th><th>Ref</th>
             </tr>
           </thead>
           <tbody>
             {txs.map(t => (
               <tr key={t.id}>
                 <td>{t.house_number}</td>
-                <td>{t.tenant_name || "-"}</td>
+                <td>{t.tenant_name}</td>
                 <td>{t.method}</td>
                 <td>KES {t.amount}</td>
                 <td>{new Date(t.paid_at).toLocaleString()}</td>
@@ -50,3 +50,5 @@ export default function Transactions({ api }) {
     </div>
   );
 }
+
+

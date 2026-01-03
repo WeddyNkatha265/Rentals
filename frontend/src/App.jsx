@@ -28,7 +28,7 @@ const layout = {
 
 export default function App() {
   const [view, setView] = useState("Dashboard");
-  const [stats, setStats] = useState({ units: 0, activeLeases: 0, expected: 0, received: 0 });
+  const [stats, setStats] = useState({ units: 0, expected: 0, received: 0, outstanding: 0, top_houses: [], recent_payments: [] });
   const [loadingStats, setLoadingStats] = useState(false);
   const [errorStats, setErrorStats] = useState("");
 
@@ -78,8 +78,8 @@ export default function App() {
             onRefresh={fetchStats}
           />
         )}
-        {view === "Houses" && <Houses api={API} />}
-        {view === "Tenants" && <Tenants api={API} />}
+        {view === "Houses" && <Houses api={API} onChanged={fetchStats} />}
+        {view === "Tenants" && <Tenants api={API} onChanged={fetchStats} />}
         {view === "Payments" && <Payments api={API} onRecorded={fetchStats} />}
         {view === "Transactions" && <Transactions api={API} />}
       </main>

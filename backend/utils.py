@@ -11,6 +11,9 @@ def month_bounds(dt: date):
 def now_ts():
     return datetime.now()
 
+def today_date():
+    return date.today()
+
 def due_date_for_month(dt: date):
     due_day = int(os.getenv("INVOICE_DUE_DAY", "5"))
     last_day = calendar.monthrange(dt.year, dt.month)[1]
